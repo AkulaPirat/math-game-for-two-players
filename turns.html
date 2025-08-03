@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Повороты</title>
+	<style>
+	#game_area {
+		position: absolute;
+		width: 100%;
+		height: 70%;
+		left: 0%;
+		top: 20%;
+		margin: 0px;
+		padding: 0px;
+		border: none;
+		touch-action: none;
+		
+		display: flex; /* добавьте это */
+		flex-direction: column; /* или оставьте как есть */
+		align-items: center; /* по горизонтали центр */
+		justify-content: center; /* по вертикали центр */
+	}
+	
+	.game_button {
+		background: transparent;
+		background-size: 80% 80%; /* или contain, или конкретные размеры */
+		background-repeat: no-repeat;
+		background-position: center;
+		margin: 0px;
+		padding: 0px;
+		border: 1px solid black;
+		touch-action: none;
+	}
+	
+	.inner {
+		border: none;
+		margin: -1px;
+		padding: 0px;
+	}
+	
+	.top, #info {
+		border: none;
+		font-size: 75px;
+		color: #FFFFFF;
+		text-align: center;
+		background-color: #000000;
+		width: 50%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	.bottom {
+		background: transparent;
+		background-size: 80% 80%; /* или contain, или конкретные размеры */
+		background-repeat: no-repeat;
+		background-position: center;
+		margin: 0px;
+		padding: 0px;
+		border: 3px solid black;
+		touch-action: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: auto;
+		height: 100%;
+		aspect-ratio: 1 / 1;
+	}
+	
+	#back_home {
+		background-color: green;
+	}
+	#new_game {
+		background-color: green;
+		border-left: 1px solid black;
+	}
+	
+	#info {
+		width: 100%;
+		background-color: #FFFFFF;
+		color: #000000;
+		transition: transform 0.3s ease;
+	}
+	#info:hover {
+		background-color: #EEEEEE;
+	}
+    </style>
+</head>
+<body>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 0%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<button class="top" id="back_home">На главную</text>
+		<button class="top" id="new_game">Новая игра</text>
+	</div>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 10%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<button id="info">Повороты</text>
+	</div>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 90%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<button class="bottom" onclick="change_rotate(0);" style="transform: rotate(0deg);"></button>
+		<button class="bottom" onclick="change_rotate(1);" style="transform: rotate(90deg);"></button>
+		<button class="bottom" onclick="change_rotate(2);" style="transform: rotate(180deg);"></button>
+		<button class="bottom" onclick="change_rotate(3);" style="transform: rotate(270deg);"></button>
+	</div>
+	<div id="game_area"></div>
+	
+	<script src="js/game_button.js"></script>
+	<script>
+		const settings = {
+			area_size: 4, // в клетках
+			padding: 50,
+			image_url: "images/arrow.png",
+			time_rotate: 0.3, // в секундах
+			players_colors: [
+				"blue",
+				"red",
+				"green",
+				"yellow",
+			],
+		}
+	
+		if (window.innerWidth > window.innerHeight) {
+			document.body.innerHTML = "";
+			document.body.style.backgroundColor = "#A01010";
+			let f = () => {alert("Переверните телефон в вертикальное положение и обновите страницу!"); setTimeout(f, 5000);};
+			setTimeout(f, 100);
+		}
+		
+		document.getElementById("back_home").addEventListener("click", (e) => {
+			if (cnt_open == 0 || cnt_open == Math.pow(settings.area_size, 2) || confirm("Вы уверены, что хотите вернуться на главную?\Текущая игра будет завершена.")) restart();
+		});
+		document.getElementById("new_game").addEventListener("click", (e) => {
+			if (cnt_open == 0 || cnt_open == Math.pow(settings.area_size, 2) || confirm("Вы уверены, что хотите начать новую игру?\nЭта игра будет завершена.")) restart();
+		});
+		document.getElementById("info").addEventListener("click", (e) => {
+			alert("Это действие недоступно по техническим причинам!");
+		});
+		
+		window.addEventListener('beforeunload', (event) => {
+			if (cnt_open != 0 && cnt_open != Math.pow(settings.area_size, 2)) {
+				// Стандартный текст будет проигнорирован большинством браузеров
+				const message = 'Возможно, внесенные изменения не сохранятся.';
+				event.returnValue = message; // Необходимо для Chrome
+				return message; // Необходимо для некоторых других браузеров
+			}
+		});
+		
+		const area = document.getElementById('game_area');
+		let line_length = parseInt((Math.min(area.offsetWidth, area.offsetHeight) - settings.padding * 2) / (settings.area_size));
+		let rotate_angle = 0;
+		let buttons = [];
+		let cnt_open = 0;
+		let blocked = false;
+		
+		restart();
+		
+		function restart() {
+			change_rotate(0);
+			document.querySelectorAll('.bottom').forEach(element => {
+				element.style.backgroundImage = `url(${settings.image_url})`;
+			});
+		
+			cnt_open = 0;
+			blocked = false;
+			
+			area.innerHTML = "";
+			let res = "";
+			for (let i = 0; i < settings.area_size; i++) {
+				res += "<div class=\"inner\">"
+				for (let j = 0; j < settings.area_size; j++) {
+					res += `<button class="game_button" id=${j + "," + i} style="width: ${line_length}px; height: ${line_length}px"></button>`;
+				}
+				res += "</div>";
+			}
+			area.innerHTML += res;
+			
+			buttons = [];
+			for (let i = 0; i < settings.area_size; i++) {
+				buttons.push([]);
+				for (let j = 0; j < settings.area_size; j++) {
+					buttons[i].push(new GameButton(document.getElementById(i + "," + j), i, j, settings.image_url, settings.time_rotate));
+					buttons[i][j].addEventListener("click", (x, y) => {
+						if (blocked) return;
+						let [dir_x, dir_y] = buttons[x][y].setStartRotate(rotate_angle);
+						cnt_open++;
+						blocked = true;
+						rotate(x + dir_x, y + dir_y);
+					});
+				}
+			}
+		}
+		
+		function rotate(x, y) {
+			if (0 <= x && x < settings.area_size && 0 <= y && y < settings.area_size && buttons[x][y].isActive()) {
+				let [dir_x, dir_y] = buttons[x][y].rotate();
+				setTimeout(() => {rotate(x + dir_x, y + dir_y);}, settings.time_rotate * 1000);
+			} else {
+				if (cnt_open == Math.pow(settings.area_size, 2)) {
+					setTimeout(() => {paint_colors();}, settings.time_rotate * 1000);
+				}
+				blocked = false;
+			}
+		}
+		
+		function change_rotate(angle) {
+			rotate_angle = angle;
+			document.querySelectorAll('.bottom').forEach(element => {
+				element.style.backgroundColor = "white";
+			});
+			document.querySelectorAll('.bottom')[angle].style.backgroundColor = "green";
+		}
+		
+		function paint_colors() {
+			for (let i = 0; i < settings.area_size; i++) {
+				for (let j = 0; j < settings.area_size; j++) {
+					buttons[i][j].setColor(settings.players_colors[buttons[i][j].getRotateAngle()]);
+				}
+			}
+		}
+	</script>
+</body>
+</html>
