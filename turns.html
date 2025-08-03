@@ -85,6 +85,37 @@
 	#info:hover {
 		background-color: #EEEEEE;
 	}
+	
+	/* Модальное окно */
+	#imageOverlay {
+		display: none; /* по умолчанию скрыто */
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.8);
+		z-index: 9999;
+		overflow: auto; /* включаем прокрутку */
+	}
+
+	/* Контейнер для изображения, чтобы его центрировать */
+	#imageContainer {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 100%;
+		padding: 20px; /* небольшой отступ */
+		box-sizing: border-box;
+	}
+
+	/* Изображение */
+	#fullImage {
+		max-width: 100%;
+		height: auto;
+		display: block;
+		cursor: pointer; /* чтобы показывать, что можно кликнуть для закрытия */
+	}
     </style>
 </head>
 <body>
@@ -102,6 +133,12 @@
 		<button class="bottom" onclick="change_rotate(3);" style="transform: rotate(270deg);"></button>
 	</div>
 	<div id="game_area"></div>
+	
+	<div id="imageOverlay">
+		<div id="imageContainer">
+			<img src="images/turns-rules.png" alt="Точки-клеточки" id="fullImage" />
+		</div>
+	</div>
 	
 	<script src="js/game_button.js"></script>
 	<script>
@@ -135,7 +172,9 @@
 			if (cnt_open == 0 || cnt_open == Math.pow(settings.area_size, 2) || confirm("Вы уверены, что хотите начать новую игру?\nЭта игра будет завершена.")) restart();
 		});
 		document.getElementById("info").addEventListener("click", (e) => {
-			alert("Это действие недоступно по техническим причинам!");
+			alert("Это действие недоступно по техическим причинам!");
+			return;
+			overlay.style.display = 'block';
 		});
 		
 		window.addEventListener('beforeunload', (event) => {
@@ -144,6 +183,13 @@
 				const message = 'Возможно, внесенные изменения не сохранятся.';
 				event.returnValue = message; // Необходимо для Chrome
 				return message; // Необходимо для некоторых других браузеров
+			}
+		});
+		
+		const overlay = document.getElementById("imageOverlay");
+		overlay.addEventListener('click', (e) => {
+			if (e.target === overlay || e.target.id === 'fullImage') {
+				overlay.style.display = 'none';
 			}
 		});
 		
