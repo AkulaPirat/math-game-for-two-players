@@ -94,7 +94,7 @@
 		}
 		
 		document.getElementById("back_home").addEventListener("click", (e) => {
-			if (is_end || confirm("Вы уверены, что хотите вернуться на главную?\Текущая игра будет завершена.")) restart();
+			if (is_end || confirm("Вы уверены, что хотите вернуться на главную?\nТекущая игра будет завершена.")) window.location.href = '/';
 		});
 		document.getElementById("new_game").addEventListener("click", (e) => {
 			if (is_end || confirm("Вы уверены, что хотите начать новую игру?\nЭта игра будет завершена.")) restart();
