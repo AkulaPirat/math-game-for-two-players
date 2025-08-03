@@ -1,61 +1,92 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Математические игры для двух игроков</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<style>
-	table {
-		width: 100%;
-		text-align: center;
-	}
-	td {
-		font-size: 20px;
-		margin: 10px;
-		padding: 10px;
-		border-top: 3px solid black;
-		border-bottom: 3px solid black;
-		border-left: 1px solid black;
-		border-right: 1px solid black;
-	}
-	tr {
-		margin: 10px;
-	}
-	
-	h1 {
-		text-align: center;
-	}
-	
-	.btn {
-		border: none;
-		text-decoration: none;
-		color: black;
-		background-color: white;
-	}
-	.btn:hover {
-		text-decoration: underline;
-		color: blue;
-	}
-	</style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		header {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			background-color: #CCCCCC;
+			color: black;
+			padding: 20px 0;
+			text-align: center;
+			z-index: 1000;
+			font-size: 30px;
+			font-weight: bold;
+		}
+
+		/* Убираем отступы у списка и элементов */
+		.buttons-list {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+
+		.buttons-list li {
+			margin: 0;
+			padding: 0;
+		}
+
+		/* Обнуляем стили у ссылок внутри списка */
+		.buttons-list a {
+			display: block;
+			width: 100vw;
+			height: 20vh;
+			line-height: 20vh;
+			text-align: center;
+			padding: 0;
+			margin: 0;
+			text-decoration: none;
+			border: 1px solid black;
+			border-radius: 4px;
+			box-sizing: border-box;
+			animation: scroll-up-down 15s infinite alternate ease-in-out;
+			background-repeat: no-repeat; /* повтор по вертикали, если нужно */
+			background-size: cover; /* или auto, или конкретные размеры */
+			font-size: 40px;
+			font-weight: bold;
+			color: black;
+		}
+		
+		@keyframes scroll-up-down {
+			0% {
+				background-position: 0 0;
+			}
+			100% {
+				background-position: 0 100%;
+			}
+		}
+  </style>
 </head>
 <body>
-	<h1>Математические игры для двух игроков</h1>
-	<table>
-		<thead>
-		</thead>
-		<tbody>
-		<tr>
-		<tr id="second">
-			<td><b>Точки-клеточки</b></td>
-			<td><a class="btn" href="/dots-cells" target="_blank" alt="Точки-клеточки">Открыть в браузере</a></td>
-		</tr>
-		<tr id="second">
-			<td><b>Повороты</b></td>
-			<td><a class="btn" href="/turns" target="_blank" alt="Повороты">Открыть в браузере</a></td>
-		</tr>
-		</tbody>
-	</table>
-    <script>
-    </script>
+	<header>
+		<div class="logo">Математические игры<br>для двух игроков</div>
+	</header>
+	<main>
+		<ul class="buttons-list">
+			<li><a href="/dots-cells" style="background-image: url('images/dots-cells.png');">Точки-клеточки</a></li>
+			<li><a href="/turns" style="background-image: url('images/turns.png');">Повороты</a></li>
+		</ul>
+	</main>
+	
+	<script>
+		if (window.innerWidth > window.innerHeight) {
+			document.body.innerHTML = "";
+			document.body.style.backgroundColor = "#A01010";
+			let f = () => {alert("Переверните телефон в вертикальное положение и обновите страницу!"); setTimeout(f, 5000);};
+			setTimeout(f, 100);
+		}
+		document.querySelector("main").style.marginTop = document.querySelector("header").offsetHeight + "px";
+	</script>
 </body>
 </html>
