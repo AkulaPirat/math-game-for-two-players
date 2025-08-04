@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Супер крестики-нолики</title>
+	<style>
+	* {
+		margin: 0;
+		padding: 0;
+		/*box-sizing: border-box;*/
+	}
+	
+	#game_area {
+		position: absolute;
+		width: 100%;
+		height: 70%;
+		left: 0%;
+		top: 20%;
+	}
+	
+	#game_area_container {
+		position: absolute;
+		width: 95%;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		aspect-ratio: 1 / 1; /* чтобы было квадратным */
+		background-color: #10FF10;
+		
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		grid-template-rows: repeat(3, 1fr);
+		gap: 0; /* убираем промежутки между ячейками */
+	}
+
+	.inner_area {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		grid-template-rows: repeat(3, 1fr);
+		gap: 0; /* убираем промежутки между ячейками */
+		width: 100%;
+		aspect-ratio: 1 / 1; /* чтобы было квадратным */
+		border: none;
+		background-size: contain; /* или contain, или конкретные размеры */
+		background-repeat: no-repeat;
+		background-position: center;
+	}
+
+	.game_button {
+		width: 100%;
+		border: none;
+		background: transparent;
+		background-color: transparent;
+		background-size: 90% 90%; /* или contain, или конкретные размеры */
+		background-repeat: no-repeat;
+		background-position: center;
+		aspect-ratio: 1 / 1; /* чтобы было квадратным */
+	}
+	.game_button:disabled {
+		background-color: #FFFFFF;
+	}
+	
+	
+	.top, #info {
+		border: none;
+		font-size: 75px;
+		color: #FFFFFF;
+		text-align: center;
+		background-color: #000000;
+		width: 50%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	.bottom {
+		font-size: 75px;
+		color: #000000;
+		text-align: center;
+		background-color: #EEEEEE;
+		width: 70%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	#move {
+		background: transparent;
+		background-color: #EEEEEE;
+		background-size: contain; /* или contain, или конкретные размеры */
+		background-image: url('images/arrow.png');
+		background-repeat: no-repeat;
+		background-position: center;
+		margin: 0px;
+		padding: 0px;
+		touch-action: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 30%;
+		height: 100%;
+		aspect-ratio: 1 / 1;
+	}
+	
+	#back_home {
+		background-color: green;
+	}
+	#new_game {
+		background-color: green;
+		border-left: 1px solid black;
+	}
+	
+	#info {
+		width: 100%;
+		background-color: #FFFFFF;
+		color: #000000;
+		transition: transform 0.3s ease;
+	}
+	#info:hover {
+		background-color: #EEEEEE;
+	}
+	
+	/* Модальное окно */
+	#imageOverlay {
+		display: none; /* по умолчанию скрыто */
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.8);
+		z-index: 9999;
+		overflow: auto; /* включаем прокрутку */
+	}
+
+	/* Контейнер для изображения, чтобы его центрировать */
+	#imageContainer {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 100%;
+		padding: 20px; /* небольшой отступ */
+		box-sizing: border-box;
+	}
+
+	/* Изображение */
+	#fullImage {
+		max-width: 100%;
+		height: auto;
+		display: block;
+		cursor: pointer; /* чтобы показывать, что можно кликнуть для закрытия */
+	}
+    </style>
+</head>
+<body>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 0%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<button class="top" id="back_home">На главную</button>
+		<button class="top" id="new_game">Новая игра</button>
+	</div>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 10%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<button id="info">Супер крестики-нолики<span style="color: orange;">&#x1F6C8;</span></button>
+	</div>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 90%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<text class="bottom">Ходит:</text>
+		<text class="bottom" id="move"></text>
+	</div>
+	<div id="game_area"></div>
+	
+	<div id="imageOverlay">
+		<div id="imageContainer">
+			<img src="images/super-tic-tac-toe-rules.png" alt="Точки-клеточки" id="fullImage" />
+		</div>
+	</div>
+	
+	<script src="js/game_button.js"></script>
+	<script>
+		const settings = {
+			padding: 50,
+			padding_square: 10,
+			images: {
+				image_cross: "images/cross.png",
+				image_circle: "images/circle.png",
+			},
+			vins: [[0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 4, 8], [2, 4, 6]],
+		}
+		
+		if (window.innerWidth > window.innerHeight) {
+			document.body.innerHTML = "";
+			document.body.style.backgroundColor = "#A01010";
+			let f = () => {alert("Переверните телефон в вертикальное положение и обновите страницу!"); setTimeout(f, 5000);};
+			setTimeout(f, 100);
+		}
+		
+		document.getElementById("back_home").addEventListener("click", (e) => {
+			if (is_end || confirm("Вы уверены, что хотите вернуться на главную?\nТекущая игра будет завершена.")) {
+				is_end = true;
+				window.location.href = '/';
+			}
+		});
+		document.getElementById("new_game").addEventListener("click", (e) => {
+			if (is_end || confirm("Вы уверены, что хотите начать новую игру?\nЭта игра будет завершена.")) restart();
+		});
+		document.getElementById("info").addEventListener("click", (e) => {
+			overlay.style.display = 'block';
+		});
+		
+		window.addEventListener('beforeunload', (event) => {
+			if (!is_end) {
+				// Стандартный текст будет проигнорирован большинством браузеров
+				const message = 'Возможно, внесенные изменения не сохранятся.';
+				event.returnValue = message; // Необходимо для Chrome
+				return message; // Необходимо для некоторых других браузеров
+			}
+		});		
+		
+		const overlay = document.getElementById("imageOverlay");
+		overlay.addEventListener('click', (e) => {
+			if (e.target === overlay || e.target.id === 'fullImage') {
+				overlay.style.display = 'none';
+			}
+		});
+		
+		const area = document.getElementById("game_area");
+		const move_el = document.getElementById("move");
+		
+		let vins = Array(9).fill(0);
+		
+		let buttons = [];
+		let move = 1;
+		let is_end = false;
+		
+		restart();
+		
+		function restart() {
+			vins = Array(9).fill(0);
+			
+			move = 2;
+			change_move();
+			
+			let res = `<div style="background-color: #10FF10;" id="game_area_container">`;
+			for (let inner = 0; inner < 9; inner++) {
+				res += `<div style="background-color: transparent;${inner % 3 != 0 ? "border-left: 10px solid black;" : ""}${inner >= 3 ? "border-top: 10px solid black;" : ""}" class="inner_area" id="${inner}">\n`;
+				for (let i = 0; i < 9; i++) {
+					res += `\t<button style="${i % 3 != 0 ? "border-left: 1px solid black;" : ""}${i >= 3 ? "border-top: 1px solid black;" : ""}" class="game_button" id="${inner},${i}"></button>\n`
+				}
+				res += `</div>\n`;
+			}
+			res += `</div>`;
+			area.innerHTML = res;
+			
+			buttons = [];
+			for (let inner = 0; inner < 9; inner++) {
+				buttons.push([]);
+				for (let i = 0; i < 9; i++) {
+					buttons[inner].push(new GameButton(document.getElementById(inner + "," + i), inner, i, settings.images));
+					buttons[inner][i].addEventListener("click", (inner, i) => {
+						buttons[inner][i].setPlayer(move);
+						check_small_vin(inner, move);
+						const all = vins[i] != 0;
+						for (let inner2 = 0; inner2 < 9; inner2++) {
+							if (document.getElementById(inner2).innerHTML == "") continue;
+							for (let i2 = 0; i2 < 9; i2++) {
+								buttons[inner2][i2].setDisabled(!((all || inner2 == i) && !buttons[inner2][i2].getPlayer() && !is_end));
+							}
+						}
+						change_move();
+					});
+				}
+			}
+		}
+		
+		function check_small_vin(inner, player) {
+			let vin = false;
+			for (let i = 0; i < settings.vins.length; i++) {
+				let flag = true;
+				for (let j = 0; j < settings.vins[i].length; j++) {
+					if (buttons[inner][settings.vins[i][j]].getPlayer() != player) {
+						flag = false;
+						break;
+					}
+				}
+				if (flag) {
+					vin = true;
+					break;
+				}
+			}
+			if (vin) {
+				const inner_el = document.getElementById(inner);
+				inner_el.innerHTML = "";
+				inner_el.style.backgroundColor = "#FFFFFF";
+				inner_el.style.backgroundImage = `url('${player == 1 ? settings.images.image_cross : settings.images.image_circle}')`;
+				vins[inner] = player;
+				check_big_vin(player);
+			} else {
+				let draw = true;
+				for (let i = 0; i < 9; i++) {
+					if (!buttons[inner][i].getPlayer()) {
+						draw = false;
+						break;
+					}
+				}
+				if (draw) {
+					vins[inner] = 3;
+					check_big_vin(player);
+				}
+			}
+		}
+		
+		function check_big_vin(player) {
+			let vin = false, i;
+			for (i = 0; i < settings.vins.length; i++) {
+				let flag = true;
+				for (let j = 0; j < settings.vins[i].length; j++) {
+					if (vins[settings.vins[i][j]] != player) {
+						flag = false;
+						break;
+					}
+				}
+				if (flag) {
+					vin = true;
+					break;
+				}
+			}
+			if (vin) {
+				for (let j = 0; j < settings.vins[i].length; j++) {
+					document.getElementById(settings.vins[i][j]).style.backgroundColor = "green";
+				}
+				document.getElementById("game_area_container").style.backgroundColor = "transperent";
+				is_end = true;
+				setTimeout(() => {alert("Игра окончена!\nПобеда " + (player == 1 ? "крестиков" : "ноликов") + ".");}, 100);
+			} else {
+				let draw = true;
+				for (let i = 0; i < 9; i++) {
+					if (vins[i] == 0) {
+						draw = false;
+						break;
+					}
+				}
+				if (draw) {
+					document.getElementById("game_area_container").style.backgroundColor = "transperent";
+					is_end = true;
+					setTimeout(() => {alert("Игра окончена!\nНичья.");}, 100);
+				}
+			}
+		}
+		
+		function change_move() {
+			if (move == 1) {
+				move = 2;
+				move_el.style.backgroundImage = `url('${settings.images.image_circle}')`;
+			} else if (move == 2) {
+				move = 1;
+				move_el.style.backgroundImage = `url('${settings.images.image_cross}')`;
+			}
+		}
+	</script>
+</body>
+</html>

@@ -120,11 +120,11 @@
 </head>
 <body>
 	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 0%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
-		<button class="top" id="back_home">На главную</text>
-		<button class="top" id="new_game">Новая игра</text>
+		<button class="top" id="back_home">На главную</button>
+		<button class="top" id="new_game">Новая игра</button>
 	</div>
 	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 10%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
-		<button id="info">Повороты</text>
+		<button id="info">Повороты<span style="color: orange;">&#x1F6C8;</span></button>
 	</div>
 	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 90%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
 		<button class="bottom" onclick="change_rotate(0);" style="transform: rotate(0deg);"></button>
@@ -140,7 +140,7 @@
 		</div>
 	</div>
 	
-	<script src="js/game_button.js"></script>
+	<script src="js/rotate_button.js"></script>
 	<script>
 		const settings = {
 			area_size: 4, // в клетках
@@ -226,7 +226,7 @@
 			for (let i = 0; i < settings.area_size; i++) {
 				buttons.push([]);
 				for (let j = 0; j < settings.area_size; j++) {
-					buttons[i].push(new GameButton(document.getElementById(i + "," + j), i, j, settings.image_url, settings.time_rotate));
+					buttons[i].push(new RotateButton(document.getElementById(i + "," + j), i, j, settings.image_url, settings.time_rotate));
 					buttons[i][j].addEventListener("click", (x, y) => {
 						if (blocked) return;
 						let [dir_x, dir_y] = buttons[x][y].setStartRotate(rotate_angle);
