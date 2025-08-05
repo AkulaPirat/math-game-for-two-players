@@ -7,7 +7,7 @@
 	* {
 		margin: 0;
 		padding: 0;
-		/*box-sizing: border-box;*/
+		box-sizing: border-box;
 	}
 	
 	#game_area {
@@ -39,7 +39,8 @@
 		grid-template-rows: repeat(3, 1fr);
 		gap: 0; /* убираем промежутки между ячейками */
 		width: 100%;
-		aspect-ratio: 1 / 1; /* чтобы было квадратным */
+		/*aspect-ratio: 1 / 1; /* чтобы было квадратным */
+		
 		border: none;
 		background-size: contain; /* или contain, или конкретные размеры */
 		background-repeat: no-repeat;
@@ -54,7 +55,7 @@
 		background-size: 90% 90%; /* или contain, или конкретные размеры */
 		background-repeat: no-repeat;
 		background-position: center;
-		aspect-ratio: 1 / 1; /* чтобы было квадратным */
+		/*aspect-ratio: 1 / 1; /* чтобы было квадратным */
 	}
 	.game_button:disabled {
 		background-color: #FFFFFF;
@@ -159,7 +160,7 @@
 		<button class="top" id="new_game">Новая игра</button>
 	</div>
 	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 10%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
-		<button id="info">Супер крестики-нолики<span style="color: orange;">&#x1F6C8;</span></button>
+		<button id="info">Супер крестики-нолики <span style="color: orange;">&#x2753;</span></button>
 	</div>
 	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 90%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
 		<text class="bottom">Ходит:</text>
