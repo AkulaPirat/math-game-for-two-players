@@ -38,19 +38,15 @@
 		}
 
 		/* Обнуляем стили у ссылок внутри списка */
-		.buttons-list a, .buttons-list text {
+		.buttons-list a {
 			display: block;
 			width: 100vw;
 			height: 20vh;
-			line-height: 20vh;
-			text-align: center;
 			padding: 0;
 			margin: 0;
-			text-decoration: none;
 			border: 3px solid black;
 			border-radius: 4px;
 			box-sizing: border-box;
-			animation: scroll-up-down 15s infinite alternate ease-in-out;
 			background-repeat: no-repeat; /* повтор по вертикали, если нужно */
 			background-size: cover; /* или auto, или конкретные размеры */
 			font-size: 40px;
@@ -58,13 +54,14 @@
 			color: black;
 		}
 		
-		.buttons-list a {
+		.buttons-list a.image {
 			border-top-left-radius: 0;
 			border-top-right-radius: 0;
 			border-top: 2px dashed black;
+			animation: scroll-up-down 15s infinite alternate ease-in-out;
 		}
 		
-		.buttons-list text {
+		.buttons-list a.text {
 			border-bottom-left-radius: 0;
 			border-bottom-right-radius: 0;
 			border-bottom: none;
@@ -72,6 +69,8 @@
 			animation: none;
 			height: 10vh;
 			line-height: 10vh;
+			text-decoration: none;
+			text-align: center;
 		}
 		
 		@keyframes scroll-up-down {
@@ -90,12 +89,12 @@
 	</header>
 	<main>
 		<ul class="buttons-list">
-			<li><text>Точки-клеточки</text></li>
-			<li><a href="/dots-cells" style="background-image: url('images/dots-cells-photo.png');"></a></li>
-			<li><text>Повороты</text></li>
-			<li><a href="/turns" style="background-image: url('images/turns-photo.png');"></a></li>
-			<li><text style="font-size: 30px;">Супер крестики-нолики</text></li>
-			<li><a href="/super-tic-tac-toe" style="background-image: url('images/super-tic-tac-toe-photo.png'); font-size: 30px;"></a></li>
+			<li><a class="text" href="/dots-cells">Точки-клеточки</a></li>
+			<li><a class="image" href="/dots-cells" style="background-image: url('images/dots-cells-photo.png');"></a></li>
+			<li><a class="text" href="/turns">Повороты</a></li>
+			<li><a class="image" href="/turns" style="background-image: url('images/turns-photo.png');"></a></li>
+			<li><a class="text" href="/super-tic-tac-toe" style="font-size: 30px;">Супер крестики-нолики</a></li>
+			<li><a class="image" href="/super-tic-tac-toe" style="background-image: url('images/super-tic-tac-toe-photo.png'); font-size: 30px;"></a></li>
 		</ul>
 	</main>
 	

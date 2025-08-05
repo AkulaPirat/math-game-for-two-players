@@ -67,6 +67,17 @@
 		z-index: 9999;
 		overflow: auto; /* включаем прокрутку */
 	}
+	
+	#closeOverlay {
+		display: flex;
+		position: fixed;
+		top: 0%;
+		left: 100%;
+		width: 10%;
+		touch-action: 1 / 1;
+		transform: translateX(-100%);
+		background-color: transperent;
+	}
 
 	/* Контейнер для изображения, чтобы его центрировать */
 	#imageContainer {
@@ -103,6 +114,7 @@
 	<canvas id="gameCanvas"></canvas>
 	
 	<div id="imageOverlay">
+		<img src="images/close.png" alt="Закрыть" id="closeOverlay"></img>
 		<div id="imageContainer">
 			<img src="images/dots-cells-rules.png" alt="Точки-клеточки" id="fullImage" />
 		</div>
@@ -158,7 +170,7 @@
 		
 		const overlay = document.getElementById("imageOverlay");
 		overlay.addEventListener('click', (e) => {
-			if (e.target === overlay || e.target.id === 'fullImage') {
+			if (e.target === overlay || e.target.id == 'closeOverlay') {
 				overlay.style.display = 'none';
 			}
 		});
