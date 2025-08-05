@@ -38,7 +38,7 @@
 		}
 
 		/* Обнуляем стили у ссылок внутри списка */
-		.buttons-list a {
+		.buttons-list a, .buttons-list text {
 			display: block;
 			width: 100vw;
 			height: 20vh;
@@ -47,7 +47,7 @@
 			padding: 0;
 			margin: 0;
 			text-decoration: none;
-			border: 1px solid black;
+			border: 3px solid black;
 			border-radius: 4px;
 			box-sizing: border-box;
 			animation: scroll-up-down 15s infinite alternate ease-in-out;
@@ -56,6 +56,22 @@
 			font-size: 40px;
 			font-weight: bold;
 			color: black;
+		}
+		
+		.buttons-list a {
+			border-top-left-radius: 0;
+			border-top-right-radius: 0;
+			border-top: 2px dashed black;
+		}
+		
+		.buttons-list text {
+			border-bottom-left-radius: 0;
+			border-bottom-right-radius: 0;
+			border-bottom: none;
+			background-color: transparent;
+			animation: none;
+			height: 10vh;
+			line-height: 10vh;
 		}
 		
 		@keyframes scroll-up-down {
@@ -74,9 +90,12 @@
 	</header>
 	<main>
 		<ul class="buttons-list">
-			<li><a href="/dots-cells" style="background-image: url('images/dots-cells-photo.png');">Точки-клеточки</a></li>
-			<li><a href="/turns" style="background-image: url('images/turns-photo.png');">Повороты</a></li>
-			<li><a href="/super-tic-tac-toe" style="background-image: url('images/super-tic-tac-toe-photo.png'); font-size: 30px;">Супер крестики-нолики</a></li>
+			<li><text>Точки-клеточки</text></li>
+			<li><a href="/dots-cells" style="background-image: url('images/dots-cells-photo.png');"></a></li>
+			<li><text>Повороты</text></li>
+			<li><a href="/turns" style="background-image: url('images/turns-photo.png');"></a></li>
+			<li><text style="font-size: 30px;">Супер крестики-нолики</text></li>
+			<li><a href="/super-tic-tac-toe" style="background-image: url('images/super-tic-tac-toe-photo.png'); font-size: 30px;"></a></li>
 		</ul>
 	</main>
 	
