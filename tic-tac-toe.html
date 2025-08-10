@@ -233,7 +233,7 @@
 			
 			let res = `<div id="game_area_container">`;
 			for (let i = 0; i < 9; i++) {
-				res += `<div style="background-color: transparent;${i % 3 != 0 ? "border-left: 10px solid black;" : ""}${i >= 3 ? "border-top: 10px solid black;" : ""}" class="game_button" id="${i}"></div>\n`;
+				res += `<button style="background-color: transparent;${i % 3 != 0 ? "border-left: 10px solid black;" : ""}${i >= 3 ? "border-top: 10px solid black;" : ""}" class="game_button" id="${i}"></button>\n`;
 			}
 			res += `</div>`;
 			area.innerHTML = res;
@@ -267,6 +267,9 @@
 			if (vin) {
 				for (let j = 0; j < settings.vins[i].length; j++) {
 					document.getElementById(settings.vins[i][j]).style.backgroundColor = "green";
+				}
+				for (let i = 0; i < 9; i++) {
+					buttons[i].setDisabled(true);
 				}
 				is_end = true;
 				setTimeout(() => {alert("Игра окончена!\nПобеда " + (player == 1 ? "крестиков" : "ноликов") + ".");}, 100);
