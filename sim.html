@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Сим</title>
+	<style>
+	#gameCanvas {
+		position: absolute;
+		width: 100%;
+		height: 70%;
+		left: 0%;
+		top: 20%;
+		margin: 0px;
+		padding: 0px;
+		border: none;
+		touch-action: none;
+	}
+	
+	#move, .top, #info {
+		border: none;
+		font-size: 75px;
+		color: #FFFFFF;
+		text-align: center;
+		background-color: #000000;
+		width: 50%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	#move {
+		width: 100%;
+	}
+	
+	#back_home {
+		background-color: green;
+	}
+	#new_game {
+		background-color: green;
+		border-left: 1px solid black;
+	}
+	
+	#info {
+		width: 100%;
+		background-color: #FFFFFF;
+		color: #000000;
+	}
+	#info:hover {
+		background-color: #EEEEEE;
+	}
+	
+	/* Модальное окно */
+	#imageOverlay {
+		display: none; /* по умолчанию скрыто */
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.8);
+		z-index: 9999;
+		overflow: auto; /* включаем прокрутку */
+	}
+	
+	#closeOverlay {
+		display: flex;
+		position: fixed;
+		top: 0%;
+		left: 100%;
+		width: 10%;
+		touch-action: 1 / 1;
+		transform: translateX(-100%);
+		background-color: transperent;
+	}
+
+	/* Контейнер для изображения, чтобы его центрировать */
+	#imageContainer {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 100%;
+		padding: 20px; /* небольшой отступ */
+		box-sizing: border-box;
+	}
+
+	/* Изображение */
+	#fullImage {
+		max-width: 100%;
+		height: auto;
+		display: block;
+		cursor: pointer; /* чтобы показывать, что можно кликнуть для закрытия */
+	}
+    </style>
+</head>
+<body>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 0%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<button class="top" id="back_home">На главную</button>
+		<button class="top" id="new_game">Новая игра</button>
+	</div>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 10%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<button id="info">Сим <span style="color: orange;">&#x2753;</span></button>
+	</div>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 90%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<text id="move">Ходит<text>
+	</div>
+	<canvas id="gameCanvas"></canvas>
+	
+	<div id="imageOverlay">
+		<img src="images/close.png" alt="Закрыть" id="closeOverlay"></img>
+		<div id="imageContainer">
+			<img src="images/sim-rules.png" alt="Сим" id="fullImage" />
+		</div>
+	</div>
+	
+	<script src="js/line.js"></script>
+	<script>
+		const settings = {
+			points_count: 6,
+			line_width: 10,
+			point_width: 20,
+			padding: 100,
+			colors: {
+				color_none: "rgba(0,0,0,0)",
+				color_first: "#E03030",
+				color_second: "#3030E0",
+			},
+		}
+	
+		if (window.innerWidth > window.innerHeight) {
+			document.body.innerHTML = "";
+			document.body.style.backgroundColor = "#A01010";
+			let f = () => {alert("Переверните телефон в вертикальное положение и обновите страницу!"); setTimeout(f, 5000);};
+			setTimeout(f, 100);
+		}
+		
+		document.getElementById("back_home").addEventListener("click", (e) => {
+			if (is_end || confirm("Вы уверены, что хотите вернуться на главную?\nТекущая игра будет завершена.")) {
+				is_end = true;
+				window.location.href = '/';
+			}
+		});
+		document.getElementById("new_game").addEventListener("click", (e) => {
+			if (is_end || confirm("Вы уверены, что хотите начать новую игру?\nЭта игра будет завершена.")) restart();
+		});
+		document.getElementById("info").addEventListener("click", (e) => {
+			alert("Это действие недоступно по техническим причинам!");
+			return;
+			overlay.style.display = 'block';
+		});
+		
+		window.addEventListener('beforeunload', (event) => {
+			if (!is_end) {
+				// Стандартный текст будет проигнорирован большинством браузеров
+				const message = 'Возможно, внесенные изменения не сохранятся.';
+				event.returnValue = message; // Необходимо для Chrome
+				return message; // Необходимо для некоторых других браузеров
+			}
+		});
+		
+		const move_el = document.getElementById("move");
+		move_el.addEventListener('click', sim);
+		
+		const overlay = document.getElementById("imageOverlay");
+		overlay.addEventListener('click', (e) => {
+			if (e.target === overlay || e.target.id == 'closeOverlay') {
+				overlay.style.display = 'none';
+			}
+		});
+		
+		move_el.style.backgroundColor = settings.colors.color_first;
+		
+		const canvas = document.getElementById('gameCanvas');
+		const rect = canvas.getBoundingClientRect();
+		canvas.width = rect.width;
+		canvas.height = rect.height;
+        ctx = canvas.getContext('2d');
+		ctx.lineWidth = settings.line_width;
+		
+		let move = 1;
+		let is_end = false;
+		let selected_point = null;
+		
+		let lines;
+		let points;
+		let R = parseInt((Math.min(canvas.width, canvas.height) - settings.padding * 2) / 2);
+		
+		canvas.addEventListener("click", (e) => {
+			if (is_end) return;
+			
+			const rect = canvas.getBoundingClientRect();
+			const x_click = e.clientX - rect.left;
+			const y_click = e.clientY - rect.top;
+			let d_min = null, i_min;
+			for (let i = 0; i < settings.points_count; i++) {
+				let x = points[i].x, y = points[i].y;
+				let distance = Math.sqrt(Math.pow(x_click - x, 2) + Math.pow(y_click - y, 2));
+				if (d_min == null || distance < d_min) {
+					d_min = distance;
+					i_min = i;
+				}
+			}
+			if (i_min == selected_point) {
+				selected_point = null;
+			} else if (selected_point == null) {
+				selected_point = i_min;
+			} else if (lines[Math.min(i_min, selected_point)][Math.max(i_min, selected_point)].player == 0) {
+				lines[Math.min(i_min, selected_point)][Math.max(i_min, selected_point)].player = move;
+				selected_point = null;
+				draw();
+				sim(move);
+				change_move();
+				return;
+			}
+			
+			draw();
+		});
+		
+		restart();		
+		function restart() {
+			move = 2;
+			change_move();
+			is_end = false;
+			selected_point = null;
+			
+			ctx.fillStyle = "white";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			
+			points = [];
+			lines = [];
+			for (let i = 0; i < settings.points_count; i++) {
+				points.push({
+					x: R * Math.cos(2 * Math.PI * i / settings.points_count) + canvas.width / 2,
+					y: R * Math.sin(2 * Math.PI * i / settings.points_count) + canvas.height / 2,
+				});
+			}
+			for (let i = 0; i < settings.points_count - 1; i++) {
+				lines.push([]);
+				for (let j = i + 1; j < settings.points_count; j++) {
+					lines[i][j] = {
+						x1: points[i].x,
+						x2: points[j].x,
+						y1: points[i].y,
+						y2: points[j].y,
+						player: 0,
+					};
+				}
+			}
+			
+			draw();
+		}
+		
+		function draw() {
+			ctx.fillStyle = "white";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			
+			for (let i = 0; i < settings.points_count - 1; i++) {
+				for (let j = i + 1; j < settings.points_count; j++) {
+					if (lines[i][j].player == 0) ctx.strokeStyle = settings.colors.color_none;
+					else if (lines[i][j].player == 1) ctx.strokeStyle = settings.colors.color_first;
+					else if (lines[i][j].player == 2) ctx.strokeStyle = settings.colors.color_second;
+					
+					ctx.beginPath();
+					ctx.moveTo(lines[i][j].x1, lines[i][j].y1);
+					ctx.lineTo(lines[i][j].x2, lines[i][j].y2);
+					ctx.stroke();
+					ctx.closePath();
+				}
+			}
+			
+			for (let i = 0; i < settings.points_count; i++) {
+				ctx.beginPath();
+				ctx.fillStyle = "#000000";
+				let r_point = i == selected_point ? settings.point_width * 1.5 : settings.point_width;
+				ctx.arc(points[i].x, points[i].y, r_point, 0, Math.PI * 2);
+				ctx.fill();
+				ctx.closePath();
+			}
+		}
+		
+		function sim(player) {
+			for (let a = 0; !is_end && a < settings.points_count - 2; a++) {
+				for (let b = a + 1; !is_end && b < settings.points_count - 1; b++) {
+					if (lines[a][b].player != player) continue;
+					for (let c = b + 1; !is_end && c < settings.points_count; c++) {
+						if (lines[a][c].player == player && lines[b][c].player == player) {
+							is_end = true;
+							setTimeout(() => {alert("Игра окончена!\nПобеда " + (player == 2 ? "первого" : "второго") + " игрока")}, 100);
+							for (let i of [a, b, c]) {							
+								ctx.beginPath();
+								ctx.fillStyle = player == 2 ? settings.colors.color_first : settings.colors.color_second;let r_point = i == selected_point ? settings.point_width * 1.5 : settings.point_width;
+								ctx.arc(points[i].x, points[i].y, settings.point_width, 0, Math.PI * 2);
+								ctx.fill();
+								ctx.closePath();
+							}
+							change_move();
+						}
+					}
+				}
+			}
+		}
+		
+		function change_move() {
+			if (move == 1) {
+				move = 2;
+				move_el.style.backgroundColor = settings.colors.color_second;
+			} else {
+				move = 1;
+				move_el.style.backgroundColor = settings.colors.color_first;
+			}
+		}
+	</script>
+</body>
+</html>
