@@ -116,8 +116,8 @@
 	<script>
 		const settings = {
 			points_count: 6,
-			line_width: 10,
-			point_width: 20,
+			line_width: 17,
+			point_width: 22,
 			padding: 100,
 			colors: {
 				color_none: "rgba(0,0,0,0)",
@@ -143,8 +143,6 @@
 			if (is_end || confirm("Вы уверены, что хотите начать новую игру?\nЭта игра будет завершена.")) restart();
 		});
 		document.getElementById("info").addEventListener("click", (e) => {
-			alert("Это действие недоступно по техническим причинам!");
-			return;
 			overlay.style.display = 'block';
 		});
 		
