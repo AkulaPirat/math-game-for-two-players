@@ -156,8 +156,9 @@
 	<script src="js/game_button.js"></script>
 	<script>
 		const settings = {
-			area_size: 6, // в клетках
+			area_size: 5, // в клетках
 			padding: 100,
+			rose_padding: 10,
 			color_active: "rgba(0, 255, 0, 0.5)",
 			images: {
 				dandelion: "images/dandelion.png",
@@ -183,8 +184,6 @@
 			if (cnt_open == 0 || cnt_open == Math.pow(settings.area_size, 2) || confirm("Вы уверены, что хотите начать новую игру?\nЭта игра будет завершена.")) restart();
 		});
 		document.getElementById("info").addEventListener("click", (e) => {
-			alert("Это действие недоступно по техническим причинам!");
-			return;
 			overlay.style.display = 'block';
 		});
 		
@@ -213,9 +212,10 @@
 		const rose = document.getElementById('wind_rose');
 		
 		let line_length = parseInt((Math.min(area.offsetWidth, area.offsetHeight) - settings.padding * 2) / (settings.area_size));
+		let rose_line_length = parseInt((Math.min(rose.offsetWidth, rose.offsetHeight) - settings.rose_padding * 2) / 3);
 		
 		rose.style.backgroundImage = `url('${settings.images.wind_rose}')`;
-		rose.style.backgroundSize = `${line_length * 3}px ${line_length * 3}px`;
+		rose.style.backgroundSize = `${rose_line_length * 3}px ${rose_line_length * 3}px`;
 		
 		let buttons = [];
 		let directions = {};
@@ -244,7 +244,7 @@
 			for (let i = -1; i <= 1; i++) {
 				res += "<div class=\"inner\">"
 				for (let j = -1; j <= 1; j++) {
-					res += `<button class="rose_button" id="rose,${j + "," + i}" style="width: ${line_length}px; height: ${line_length}px"></button>`;
+					res += `<button class="rose_button" id="rose,${j + "," + i}" style="width: ${rose_line_length}px; height: ${rose_line_length}px"></button>`;
 				}
 				res += "</div>";
 			}
@@ -270,9 +270,7 @@
 			for (let i = -1; i <= 1; i++) {
 				for (let j = -1; j <= 1; j++) {
 					if (i == 0 && j == 0) {
-						console.log(document.getElementById("rose," + i + "," + j));
 						document.getElementById("rose," + i + "," + j).disabled = true;
-						console.log(document.getElementById("rose," + i + "," + j));
 					} else {
 						directions[i + "," + j] = new GameButton(document.getElementById("rose," + i + "," + j), i, j, images_for_btn);
 						directions[i + "," + j].addEventListener("click", (x, y) => {
@@ -308,8 +306,8 @@
 		}
 		
 		function check_vin() {
-			if (cnt_open >= Math.pow(settings.area_size) || cnt_moves >= 7) {
-				setTimeout(() => {alert("Игра окончена!\nПобеда " + (cnt_open >= Math.pow(settings.area_size, 2) ? "одуванчика" : "ветра") + ".")}, 100);
+			if (cnt_open >= Math.pow(settings.area_size, 2) || cnt_moves >= 7) {
+				setTimeout(() => {alert("Игра окончена!\nПобеда " + (cnt_open >= Math.pow(settings.area_size, 2) ? "Одуванчика" : "Ветра") + ".")}, 100);
 				console.log(cnt_open);
 				area.style.backgroundColor = rose.style.backgroundColor = "white";
 				move = 0;
