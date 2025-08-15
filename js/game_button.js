@@ -18,6 +18,9 @@ class GameButton {
 		else if (this.player == 2) this.element.style.backgroundImage = `url("${this.images.image_circle}")`;
 		this.setDisabled(true);
 	}
+	isDisabled() {
+		return this.element.disabled;
+	}
 	setDisabled(disabled) {
 		this.element.disabled = disabled;
 	}

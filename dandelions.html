@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Одуванчики</title>
+	<style>
+	#container{
+		position: absolute;
+		width: 96%;
+		height: 76%;
+		left: 2%;
+		top: 22%;
+		padding: 0;
+		margin: 0;
+	}
+	#game_area, #wind_rose {
+		width: 100%;
+		aspect-ratio: 1 / 1;
+		margin: 0px;
+		padding: 0px;
+		border: none;
+		touch-action: none;
+		
+		display: flex; /* добавьте это */
+		flex-direction: column; /* или оставьте как есть */
+		align-items: center; /* по горизонтали центр */
+		justify-content: center; /* по вертикали центр */
+	}
+	#wind_rose {
+		height: 30%;
+		left: 0%;
+		top: 70%;
+		
+		background: transparent;
+		background-repeat: no-repeat;
+		background-position: center;
+	}
+	
+	.game_button, .rose_button {
+		background-color: white;
+		background-size: 80% 80%; /* или contain, или конкретные размеры */
+		background-repeat: no-repeat;
+		background-position: center;
+		margin: 0px;
+		padding: 0px;
+		border: 1px solid black;
+		touch-action: none;
+	}
+	.rose_button {
+		background-color: transparent;
+	}
+	.rose_button:disabled {
+		background-color: rgba(255, 0, 0, 0.5);
+	}
+	
+	.inner {
+		border: none;
+		margin: -1px;
+		padding: 0px;
+	}
+	
+	.top, #info {
+		border: none;
+		font-size: 75px;
+		color: #FFFFFF;
+		text-align: center;
+		background-color: #000000;
+		width: 50%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	#back_home {
+		background-color: green;
+	}
+	#new_game {
+		background-color: green;
+		border-left: 1px solid black;
+	}
+	
+	#info {
+		width: 100%;
+		background-color: #FFFFFF;
+		color: #000000;
+		transition: transform 0.3s ease;
+	}
+	#info:hover {
+		background-color: #EEEEEE;
+	}
+	
+	/* Модальное окно */
+	#imageOverlay {
+		display: none; /* по умолчанию скрыто */
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.8);
+		z-index: 9999;
+		overflow: auto; /* включаем прокрутку */
+	}
+	
+	#closeOverlay {
+		display: flex;
+		position: fixed;
+		top: 0%;
+		left: 100%;
+		width: 10%;
+		touch-action: 1 / 1;
+		transform: translateX(-100%);
+		background-color: transperent;
+	}
+
+	/* Контейнер для изображения, чтобы его центрировать */
+	#imageContainer {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 100%;
+		padding: 20px; /* небольшой отступ */
+		box-sizing: border-box;
+	}
+
+	/* Изображение */
+	#fullImage {
+		max-width: 100%;
+		height: auto;
+		display: block;
+		cursor: pointer; /* чтобы показывать, что можно кликнуть для закрытия */
+	}
+    </style>
+</head>
+<body>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 0%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<button class="top" id="back_home">На главную</button>
+		<button class="top" id="new_game">Новая игра</button>
+	</div>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 10%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<button id="info">Одуванчики <span style="color: orange;">&#x2753;</span></button>
+	</div>
+	<div id="container">
+		<div id="game_area"></div>
+		<div id="wind_rose"></div>
+	</div>
+	
+	<div id="imageOverlay">
+		<img src="images/close.png" alt="Закрыть" id="closeOverlay"></img>
+		<div id="imageContainer">
+			<img src="images/dandelions-rules.png" alt="Точки-клеточки" id="fullImage" />
+		</div>
+	</div>
+	
+	<script src="js/game_button.js"></script>
+	<script>
+		const settings = {
+			area_size: 6, // в клетках
+			padding: 100,
+			color_active: "rgba(0, 255, 0, 0.5)",
+			images: {
+				dandelion: "images/dandelion.png",
+				dandelion_mini: "images/mini_dandelion.png",
+				wind_rose: "images/wind_rose.png",
+			}
+		};
+	
+		if (window.innerWidth > window.innerHeight) {
+			document.body.innerHTML = "";
+			document.body.style.backgroundColor = "#A01010";
+			let f = () => {alert("Переверните телефон в вертикальное положение и обновите страницу!"); setTimeout(f, 5000);};
+			setTimeout(f, 100);
+		}
+		
+		document.getElementById("back_home").addEventListener("click", (e) => {
+			if (cnt_open == 0 || cnt_open == Math.pow(settings.area_size, 2) || confirm("Вы уверены, что хотите вернуться на главную?\nТекущая игра будет завершена.")) {
+				cnt_open = 0;
+				window.location.href = '/';
+			}
+		});
+		document.getElementById("new_game").addEventListener("click", (e) => {
+			if (cnt_open == 0 || cnt_open == Math.pow(settings.area_size, 2) || confirm("Вы уверены, что хотите начать новую игру?\nЭта игра будет завершена.")) restart();
+		});
+		document.getElementById("info").addEventListener("click", (e) => {
+			alert("Это действие недоступно по техническим причинам!");
+			return;
+			overlay.style.display = 'block';
+		});
+		
+		window.addEventListener('beforeunload', (event) => {
+			if (cnt_open != 0 && cnt_open != Math.pow(settings.area_size, 2)) {
+				// Стандартный текст будет проигнорирован большинством браузеров
+				const message = 'Возможно, внесенные изменения не сохранятся.';
+				event.returnValue = message; // Необходимо для Chrome
+				return message; // Необходимо для некоторых других браузеров
+			}
+		});
+		
+		const images_for_btn = {
+			image_cross: settings.images.dandelion,
+			image_circle: settings.images.dandelion_mini,
+		};
+		
+		const overlay = document.getElementById("imageOverlay");
+		overlay.addEventListener('click', (e) => {
+			if (e.target === overlay || e.target.id === 'closeOverlay') {
+				overlay.style.display = 'none';
+			}
+		});
+		
+		const area = document.getElementById('game_area');
+		const rose = document.getElementById('wind_rose');
+		
+		let line_length = parseInt((Math.min(area.offsetWidth, area.offsetHeight) - settings.padding * 2) / (settings.area_size));
+		
+		rose.style.backgroundImage = `url('${settings.images.wind_rose}')`;
+		rose.style.backgroundSize = `${line_length * 3}px ${line_length * 3}px`;
+		
+		let buttons = [];
+		let directions = {};
+		let cnt_open = 0;
+		let cnt_moves = 0;
+		let move = 1;
+		
+		restart();
+		
+		function restart() {
+			cnt_open = cnt_moves = 0;
+			
+			area.innerHTML = "";
+			let res = "";
+			for (let i = 0; i < settings.area_size; i++) {
+				res += "<div class=\"inner\">"
+				for (let j = 0; j < settings.area_size; j++) {
+					res += `<button class="game_button" id="${j + "," + i}" style="width: ${line_length}px; height: ${line_length}px"></button>`;
+				}
+				res += "</div>";
+			}
+			area.innerHTML += res;			
+			
+			rose.innerHTML = "";
+			res = "";
+			for (let i = -1; i <= 1; i++) {
+				res += "<div class=\"inner\">"
+				for (let j = -1; j <= 1; j++) {
+					res += `<button class="rose_button" id="rose,${j + "," + i}" style="width: ${line_length}px; height: ${line_length}px"></button>`;
+				}
+				res += "</div>";
+			}
+			rose.innerHTML += res;
+			
+			
+			buttons = [];
+			for (let i = 0; i < settings.area_size; i++) {
+				buttons.push([]);
+				for (let j = 0; j < settings.area_size; j++) {
+					buttons[i].push(new GameButton(document.getElementById(i + "," + j), i, j, images_for_btn));
+					buttons[i][j].addEventListener("click", (x, y) => {
+						if (move != 1) return;
+						if (buttons[x][y].getPlayer() == 0) cnt_open++;
+						buttons[x][y].setPlayer(1);
+						check_vin();
+						change_move();
+					});
+				}
+			}
+			
+			
+			for (let i = -1; i <= 1; i++) {
+				for (let j = -1; j <= 1; j++) {
+					if (i == 0 && j == 0) {
+						console.log(document.getElementById("rose," + i + "," + j));
+						document.getElementById("rose," + i + "," + j).disabled = true;
+						console.log(document.getElementById("rose," + i + "," + j));
+					} else {
+						directions[i + "," + j] = new GameButton(document.getElementById("rose," + i + "," + j), i, j, images_for_btn);
+						directions[i + "," + j].addEventListener("click", (x, y) => {
+							if (move != 2) return;
+							directions[x + "," + y].setDisabled(true);
+							cnt_moves++;
+							blow(x, y);
+							check_vin();
+							change_move();
+						});
+					}
+				}
+			}
+			
+			move = 2;
+			change_move();
+		}
+		
+		function blow(x, y) {
+			for (let i = 0; i < settings.area_size; i++) {
+				for (let j = 0; j < settings.area_size; j++) {
+					if (buttons[i][j].getPlayer() == 1) {
+						for (let pos_x = i, pos_y = j; 0 <= pos_x && pos_x < settings.area_size && 0 <= pos_y && pos_y < settings.area_size; pos_x += x, pos_y += y) {
+							if (buttons[pos_x][pos_y].getPlayer() != 1) {
+								if (buttons[pos_x][pos_y].getPlayer() == 0) cnt_open++;
+								buttons[pos_x][pos_y].setPlayer(2);
+								buttons[pos_x][pos_y].setDisabled(false);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		function check_vin() {
+			if (cnt_open >= Math.pow(settings.area_size) || cnt_moves >= 7) {
+				setTimeout(() => {alert("Игра окончена!\nПобеда " + (cnt_open >= Math.pow(settings.area_size, 2) ? "одуванчика" : "ветра") + ".")}, 100);
+				console.log(cnt_open);
+				area.style.backgroundColor = rose.style.backgroundColor = "white";
+				move = 0;
+			}
+		}
+		
+		function change_move() {
+			if (move == 1) {
+				move = 2;
+				rose.style.backgroundColor = settings.color_active;
+				area.style.backgroundColor = "white";
+			} else if (move == 2) {
+				move = 1;
+				rose.style.backgroundColor = "white";
+				area.style.backgroundColor = settings.color_active;
+			}
+		}
+	</script>
+</body>
+</html>
