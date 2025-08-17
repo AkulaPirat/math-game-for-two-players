@@ -175,13 +175,13 @@
 		}
 		
 		document.getElementById("back_home").addEventListener("click", (e) => {
-			if (cnt_open == 0 || cnt_open == Math.pow(settings.area_size, 2) || confirm("Вы уверены, что хотите вернуться на главную?\nТекущая игра будет завершена.")) {
+			if (cnt_open == 0 || cnt_open == Math.pow(settings.area_size, 2) || cnt_moves >= 7 || confirm("Вы уверены, что хотите вернуться на главную?\nТекущая игра будет завершена.")) {
 				cnt_open = 0;
 				window.location.href = '/';
 			}
 		});
 		document.getElementById("new_game").addEventListener("click", (e) => {
-			if (cnt_open == 0 || cnt_open == Math.pow(settings.area_size, 2) || confirm("Вы уверены, что хотите начать новую игру?\nЭта игра будет завершена.")) restart();
+			if (cnt_open == 0 || cnt_open == Math.pow(settings.area_size, 2) || cnt_moves >= 7 || confirm("Вы уверены, что хотите начать новую игру?\nЭта игра будет завершена.")) restart();
 		});
 		document.getElementById("info").addEventListener("click", (e) => {
 			overlay.style.display = 'block';
