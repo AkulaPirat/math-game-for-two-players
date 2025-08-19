@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Квантовые крестики-нолики</title>
+	<style>
+	#gameCanvas {
+		position: absolute;
+		width: 100%;
+		height: 70%;
+		left: 0%;
+		top: 20%;
+		margin: 0px;
+		padding: 0px;
+		border: none;
+		touch-action: none;
+	}
+	
+	.top, #info {
+		border: none;
+		font-size: 75px;
+		color: #FFFFFF;
+		text-align: center;
+		background-color: #000000;
+		width: 50%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}	
+	#back_home {
+		background-color: green;
+	}
+	#new_game {
+		background-color: green;
+		border-left: 1px solid black;
+	}
+	
+	#info {
+		width: 100%;
+		font-size: 65px;
+		background-color: #FFFFFF;
+		color: #000000;
+	}
+	#info:hover {
+		background-color: #EEEEEE;
+	}
+	
+	.bottom {
+		font-size: 75px;
+		color: #000000;
+		text-align: center;
+		background-color: #EEEEEE;
+		width: 70%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	#move {
+		background: transparent;
+		background-color: #EEEEEE;
+		background-size: contain; /* или contain, или конкретные размеры */
+		background-image: url('images/arrow.png');
+		background-repeat: no-repeat;
+		background-position: center;
+		margin: 0px;
+		padding: 0px;
+		touch-action: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 30%;
+		height: 100%;
+		aspect-ratio: 1 / 1;
+	}
+	
+	/* Модальное окно */
+	#imageOverlay {
+		display: none; /* по умолчанию скрыто */
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.8);
+		z-index: 9999;
+		overflow: auto; /* включаем прокрутку */
+	}
+	
+	#closeOverlay {
+		display: flex;
+		position: fixed;
+		top: 0%;
+		left: 100%;
+		width: 10%;
+		touch-action: 1 / 1;
+		transform: translateX(-100%);
+		background-color: transperent;
+	}
+
+	/* Контейнер для изображения, чтобы его центрировать */
+	#imageContainer {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 100%;
+		padding: 20px; /* небольшой отступ */
+		box-sizing: border-box;
+	}
+
+	/* Изображение */
+	#fullImage {
+		max-width: 100%;
+		height: auto;
+		display: block;
+		cursor: pointer; /* чтобы показывать, что можно кликнуть для закрытия */
+	}
+    </style>
+</head>
+<body>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 0%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<button class="top" id="back_home">На главную</button>
+		<button class="top" id="new_game">Новая игра</button>
+	</div>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 10%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<button id="info">Квантовые крестики-нолики <span style="color: orange;">&#x2753;</span></button>
+	</div>
+	<div style="padding: 0; margin: 0; position: absolute; left: 0; top: 90%; width: 100%; height: 10%; display: flex; align-items: center; justify-content: space-around;">
+		<text class="bottom">Ходит:</text>
+		<text class="bottom" id="move"></text>
+	</div>
+	<canvas id="gameCanvas"></canvas>
+	
+	<div id="imageOverlay">
+		<img src="images/close.png" alt="Закрыть" id="closeOverlay"></img>
+		<div id="imageContainer">
+			<img src="images/quantum-tic-tac-toe-rules.png" alt="Сим" id="fullImage" />
+		</div>
+	</div>
+	
+	<script>
+		const settings = {
+			border_width: 5,
+			line_width: 3,
+			padding: 100,
+			padding_image: 10,
+			colors: {
+				color_active: "rgba(0, 255, 0, 0.5)",
+				color_cross: "rgba(255, 0, 0, 0.7)",
+				color_circle: "rgba(0, 0, 255, 0.7)",
+				color_vin: "rgba(0, 255, 0, 0.7)",
+			},
+			images: {
+				image_cross: "images/cross.png",
+				image_circle: "images/circle.png",
+			},
+			vins: [[0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 4, 8], [2, 4, 6]],
+		}
+	
+		if (window.innerWidth > window.innerHeight) {
+			document.body.innerHTML = "";
+			document.body.style.backgroundColor = "#A01010";
+			let f = () => {alert("Переверните телефон в вертикальное положение и обновите страницу!"); setInterval(f, 5000);};
+			setTimeout(f, 100);
+		}
+		
+		document.getElementById("back_home").addEventListener("click", (e) => {
+			if (is_end || confirm("Вы уверены, что хотите вернуться на главную?\nТекущая игра будет завершена.")) {
+				is_end = true;
+				window.location.href = '/';
+			}
+		});
+		document.getElementById("new_game").addEventListener("click", (e) => {
+			if (is_end || confirm("Вы уверены, что хотите начать новую игру?\nЭта игра будет завершена.")) restart();
+		});
+		document.getElementById("info").addEventListener("click", (e) => {
+			alert("Это действие недоступно по техническим причиам!");
+			return;
+			overlay.style.display = 'block';
+		});
+		
+		window.addEventListener('beforeunload', (event) => {
+			if (!is_end) {
+				// Стандартный текст будет проигнорирован большинством браузеров
+				const message = 'Возможно, внесенные изменения не сохранятся.';
+				event.returnValue = message; // Необходимо для Chrome
+				return message; // Необходимо для некоторых других браузеров
+			}
+		});
+		
+		const move_el = document.getElementById("move");
+		
+		const overlay = document.getElementById("imageOverlay");
+		overlay.addEventListener('click', (e) => {
+			if (e.target === overlay || e.target.id == 'closeOverlay') {
+				overlay.style.display = 'none';
+			}
+		});
+		
+		const canvas = document.getElementById('gameCanvas');
+		const rect = canvas.getBoundingClientRect();
+		canvas.width = rect.width;
+		canvas.height = rect.height;
+        ctx = canvas.getContext('2d');
+		
+		const cross = new Image(), circle = new Image();
+		cross.src = settings.images.image_cross;
+		circle.src = settings.images.image_circle;
+		
+		let imagesLoaded = 0;
+		cross.onload = circle.onload = () => {
+			imagesLoaded++;
+			if (imagesLoaded === 2) {
+				// Всё загружено, можно рисовать
+				restart();
+			}
+		};
+		
+		let move = 1;
+		let is_end = false;
+		let line_length = parseInt((Math.min(canvas.width, canvas.height) - settings.padding * 2) / 9);
+		let id = 0;
+		
+		let selected_square = null;
+		let checked = null;
+		
+		let squares = [];
+		
+		canvas.addEventListener("click", (e) => {
+			if (is_end) return;
+			
+			const rect = canvas.getBoundingClientRect();
+			const x_click = e.clientX - rect.left;
+			const y_click = e.clientY - rect.top;
+			
+			let d_min = null, i_min;			
+			for (let i = 0; i < 9; i++) {
+				let distance = Math.sqrt(Math.pow(x_click - (squares[i].x + line_length * 1.5), 2) + Math.pow(y_click - (squares[i].y + line_length * 1.5), 2));
+				if (d_min == null || distance < d_min) {
+					d_min = distance;
+					i_min = i;
+				}
+			}
+			if (checked != null) {
+				if (checked.elements.indexOf(i_min) != -1) {
+					collapse(checked.id, i_min);
+					checked = null;
+					check_vin();
+					draw();
+				}
+			} else if (squares[i_min].player == 0) {
+				if (selected_square == null) {
+					selected_square = i_min;
+				} else if (selected_square == i_min) {
+					selected_square = null;
+				} else {
+					squares[i_min].connections.push({
+						"player": move,
+						"connect": selected_square,
+						"id": id,
+					});
+					squares[selected_square].connections.push({
+						"player": move,
+						"connect": i_min,
+						"id": id,
+					});
+					
+					if (is_entanglement(i_min, selected_square)) {
+						checked = {
+							elements: [i_min, selected_square],
+							id: id,
+						};
+					}
+					
+					id++;
+					
+					selected_square = null;
+					change_move();
+				}
+			}
+			
+			draw();
+		});
+		
+		function restart() {
+			move = 2;
+			change_move();
+			is_end = false;
+			selected_square = null;
+			id = 0;
+			checked = null;
+			
+			ctx.fillStyle = "white";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			
+			squares = [];
+			for (let i = 0; i < 9; i++) {
+				squares.push({
+					player: 0,
+					x: (canvas.width - Math.min(canvas.width, canvas.height)) / 2 + settings.padding + (line_length * 3 * (i % 3)),
+					y: (canvas.height - Math.min(canvas.width, canvas.height)) / 2 + settings.padding + (line_length * 3 * parseInt(i / 3)),
+					connections: [],
+					is_delete: false,
+				});
+			}
+			
+			draw();
+		}
+		
+		function draw() {
+			ctx.fillStyle = "white";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			
+			for (let i = 0; i < 9; i++) {				
+				ctx.lineWidth = settings.border_width;
+				ctx.strokeStyle = "black";
+				if (i % 3 != 0) {
+					ctx.beginPath();
+					ctx.moveTo(squares[i].x, squares[i].y);
+					ctx.lineTo(squares[i].x, squares[i].y + line_length * 3);
+					ctx.stroke();
+					ctx.closePath();
+				}
+				if (parseInt(i / 3) != 0) {
+					ctx.beginPath();
+					ctx.moveTo(squares[i].x, squares[i].y);
+					ctx.lineTo(squares[i].x + line_length * 3, squares[i].y);
+					ctx.stroke();
+					ctx.closePath();
+				}
+				
+				if (squares[i].player == 0) {
+					for (let j = 0; j < squares[i].connections.length; j++) {
+						if (squares[i].connections[j].is_delete) continue;
+						if (i < squares[i].connections[j].connect) {
+							let el = squares[squares[i].connections[j].connect];
+							let j2 = el.connections.findIndex(item => item.id == squares[i].connections[j].id);
+							ctx.lineWidth = checked != null && checked.id == squares[i].connections[j].id ? settings.line_width * 5 : settings.line_width;
+							ctx.strokeStyle = squares[i].connections[j].player == 1 ? settings.colors.color_cross : settings.colors.color_circle;
+							ctx.beginPath();
+							ctx.moveTo(squares[i].x + line_length * (j % 3) + line_length * 0.5, squares[i].y + line_length * parseInt(j / 3) + line_length * 0.5);
+							ctx.lineTo(el.x + line_length * (j2 % 3) + line_length * 0.5, el.y + line_length * parseInt(j2 / 3) + line_length * 0.5);
+							ctx.stroke();
+							ctx.closePath();	
+						}
+						ctx.drawImage(squares[i].connections[j].player == 1 ? cross : circle, squares[i].x + line_length * (j % 3), squares[i].y + line_length * parseInt(j / 3), line_length, line_length);
+					}
+				} else {
+					ctx.drawImage(squares[i].player == 1 ? cross : circle, squares[i].x + settings.padding_image, squares[i].y + settings.padding_image, line_length * 3 - settings.padding_image * 2, line_length * 3 - settings.padding_image * 2);
+				}
+				
+				if (i == selected_square || (checked != null && checked.elements.indexOf(i) != -1)) {
+					ctx.fillStyle = settings.colors.color_active;
+					ctx.fillRect(squares[i].x, squares[i].y, line_length * 3, line_length * 3);
+				}
+			}
+		}
+		
+		function is_entanglement(i, j) {
+			const f = (x, y) => {
+				let id = squares[x].connections[squares[x].connections.findIndex(item => item.connect == y)].id;
+				for (let j = 0; j < squares[y].connections.length; j++) {
+					if (squares[y].connections[j].is_delete || squares[y].connections[j].id == id) continue;
+					if (squares[y].connections[j].connect == i || f(y, squares[y].connections[j].connect)) {
+						return true;
+					}
+				}
+				return false;
+			}
+			return f(i, j);
+		}
+		
+		function collapse(id, i) {
+			let j = squares[i].connections.findIndex(item => item.id == id);
+			let el = squares[squares[i].connections[j].connect];
+			squares[i].player = squares[i].connections[j].player;
+			el.connections[el.connections.findIndex(item => item.id == id)].is_delete = true;
+			squares[i].connections[j].is_delete = true;
+			for (let x = 0; x < squares[i].connections.length; x++) {
+				if (squares[i].connections[x].is_delete) continue;
+				collapse(squares[i].connections[x].id, squares[i].connections[x].connect);
+			}
+		}
+		
+		function check_vin() {
+			let cross_vins = 0, circle_vins = 0;
+			for (let x = 0; x < settings.vins.length; x++) {
+				let [a, b, c] = settings.vins[x];
+				if (squares[a].player != 0 && squares[a].player == squares[b].player && squares[a].player == squares[c].player) {
+					for (let el of [a, b, c]) {
+						ctx.fillStyle = settings.colors.color_vin;
+						ctx.fillRect(squares[el].x, squares[el].y, line_length * 3, line_length * 3);
+					}
+					if (squares[a].player == 1) cross_vins++;
+					else if (squares[a].player == 2) circle_vins++;
+				}
+			}
+			if (cross_vins == 0 && circle_vins == 0) {
+				let cnt = 0;
+				for (let i = 0; i < 9; i++) {
+					if (squares[i].player != 0) cnt++;
+				}
+				if (cnt >= 8) {
+					is_end = true;
+					setTimeout(() => {
+						alert("Игра окончена!\nНичья.");
+					}, 100);
+				}
+			} else {
+				is_end = true;
+				setTimeout(() => {
+					if (cross_vins == circle_vins) alert("Игра окончена!\nОбщая победа.");
+					else alert("Игра окончена!\nПобеда " + (cross_vins > circle_vins ? "крестиков" : "ноликов") + ".");
+				}, 100);
+			}
+		}
+		
+		function change_move() {
+			if (move == 1) {
+				move = 2;
+				move_el.style.backgroundImage = `url('${settings.images.image_circle}')`;
+			} else {
+				move = 1;
+				move_el.style.backgroundImage = `url('${settings.images.image_cross}')`;
+			}
+		}
+	</script>
+</body>
+</html>
